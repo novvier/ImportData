@@ -13,19 +13,20 @@ MetDavis <- function(file, tz = "America/Lima") {
   #   data.frame whit data
   #
   # Importar de txt
-  x <- read.csv2(file, sep = "\t", skip = 2,
-    header = FALSE, col.names = seq(1,38,1),
-    colClasses = "character")
+  x <- read.csv(file, sep = "\t", skip = 2, header = FALSE, 
+                col.names = seq(1,38,1), na.strings = "---")
   #
   # Variables Davis
   names(x) <- c("date","time","TempOut","TempHi","TempLow",
     "HumOut","PtDew","WindSpeed","WindDir","WindRun",
-    "HiSpeed","HeatIndex","HiDir","WindChill","ThwIndex",
+    "HiSpeed","HiDir","HeatIndex","WindChill","ThwIndex",
     "ThsIndex","Bar","Rain","RainRate","SolarRad",
     "SolarEnergy","HiSolarRad","UvIndex","UvDose","HiUv",
     "DdHeat","DdCool","TempIn","HumIn","DewIn","HeatIn",
     "EmcIn","DensityInAir","Et","IssRecept","WindSamp",
     "WindTx","ArcInt")
+  #
+  x[, c(1, 2, 9, 12)] <- lapply(x[, c(1, 2, 9, 12)], as.character)
   #
   # Convertir fecha en POSIX
   x$date <- paste(x$date, x$time)
@@ -36,29 +37,29 @@ MetDavis <- function(file, tz = "America/Lima") {
   #
   # WindDir Nominal
   x$WindDir.n <- x$WindDir
+  x$HiDir.n <- x$HiDir
   # Convertir valores nominales deWwindDir a grado
-  for (i in 1:length(x$WindDir)){
-    if (x$WindDir[i] == "N") x$WindDir[i] <- "360"
-    if (x$WindDir[i] == "NNE") x$WindDir[i] <- "22.5"
-    if (x$WindDir[i] == "NE") x$WindDir[i] <- "45"
-    if (x$WindDir[i] == "ENE") x$WindDir[i] <- "67.5"
-    if (x$WindDir[i] == "E") x$WindDir[i] <- "90"
-    if (x$WindDir[i] == "ESE") x$WindDir[i] <- "112.5"
-    if (x$WindDir[i] == "SE") x$WindDir[i] <- "135"
-    if (x$WindDir[i] == "SSE") x$WindDir[i] <- "157.5"
-    if (x$WindDir[i] == "S") x$WindDir[i] <- "180"
-    if (x$WindDir[i] == "SSW") x$WindDir[i] <- "202.5"
-    if (x$WindDir[i] == "SW") x$WindDir[i] <- "225"
-    if (x$WindDir[i] == "WSW") x$WindDir[i] <- "247.5"
-    if (x$WindDir[i] == "W") x$WindDir[i] <- "270"
-    if (x$WindDir[i] == "WNW") x$WindDir[i] <- "292.5"
-    if (x$WindDir[i] == "NW") x$WindDir[i] <- "315"
-    if (x$WindDir[i] == "NNW") x$WindDir[i] <- "337.5"
+  WinDirNum <- function(x) {
+    lx = length(x)
+    y = rep("",lx)
+    name = c("C","NNE","NE","ENE","E","ESE","SE",
+      "SSE","S","SSW","SW","WSW","W","WNW","NW","NNW","N")
+    value = seq(0,360,22.5)
+    #
+    for (i in 1:lx){
+      z = value[which(name == x[i])]
+      if(length(z) == 0) y[i] = ""
+      else y[i] = z 
+    }
+    #
+    return(y)
   }
+  x$WindDir <- as.numeric(WinDirNum(x$WindDir))
+  x$HiDir <- as.numeric(WinDirNum(x$HiDir))
   #
-  lx <- length(x)-1
-  for (i in 2:lx)
-    x[,i] <- as.numeric(x[,i])
+  #lx <- length(x)-1
+  #for (i in 2:lx)
+  #  x[,i] <- as.numeric(x[,i])
   #
   return(x)
 }
