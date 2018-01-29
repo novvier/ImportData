@@ -3,6 +3,7 @@
 # ----------------------------------------------------------------- #
 
 MetDavis <- function(file, tz = "America/Lima") {
+  #
   # Import data from station Davis Vintage Pro
   #
   # Args:
@@ -12,11 +13,11 @@ MetDavis <- function(file, tz = "America/Lima") {
   # Return:
   #   data.frame whit data
   #
-  # Importar de txt
+  # Import from txt file
   x <- read.csv(file, sep = "\t", skip = 2, header = FALSE, 
                 col.names = seq(1,38,1), na.strings = "---")
   #
-  # Variables Davis
+  # Names values
   names(x) <- c("date","time","TempOut","TempHi","TempLow",
     "HumOut","PtDew","WindSpeed","WindDir","WindRun",
     "HiSpeed","HiDir","HeatIndex","WindChill","ThwIndex",
@@ -28,14 +29,14 @@ MetDavis <- function(file, tz = "America/Lima") {
   #
   x[, c(1, 2, 9, 12)] <- lapply(x[, c(1, 2, 9, 12)], as.character)
   #
-  # Convertir fecha en POSIX
+  # Convert date to POSIX
   x$date <- paste(x$date, x$time)
   x$date <- paste(x$date, "m", sep = "")
   x$date <- as.POSIXct(strptime(x$date,
     format = "%d/%m/%y %I:%M %p", tz=tz))
   x$time <- NULL
   #
-  # WindDir Nominal
+  # Change nominal to numeric the wind speed values
   x$WindDir.n <- x$WindDir
   x$HiDir.n <- x$HiDir
   # Convertir valores nominales deWwindDir a grado
@@ -56,10 +57,6 @@ MetDavis <- function(file, tz = "America/Lima") {
   }
   x$WindDir <- as.numeric(WinDirNum(x$WindDir))
   x$HiDir <- as.numeric(WinDirNum(x$HiDir))
-  #
-  #lx <- length(x)-1
-  #for (i in 2:lx)
-  #  x[,i] <- as.numeric(x[,i])
   #
   return(x)
 }
